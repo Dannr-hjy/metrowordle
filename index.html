@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetroWoldle</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- 配置Tailwind自定义颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1a1a1a',
+            secondary: '#6b7280',
+            success: '#6aaa64',
+            warning: '#c9b458',
+            neutral: '#787c7e',
+            light: '#f8f9fa',
+            dark: '#121213'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .letter-anim {
+        transition: all 0.3s ease-in-out;
+      }
+      .pulse-correct {
+        animation: pulse-correct 0.5s ease-in-out;
+      }
+      .scale-in {
+        animation: scale-in 0.2s ease-out;
+      }
+      .slide-in {
+        animation: slide-in 0.3s ease-out;
+      }
+      .shake {
+        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+      }
+    }
+    
+    @keyframes pulse-correct {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    @keyframes scale-in {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes slide-in {
+      0% { transform: translateY(20px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    
+    @keyframes shake {
+      10%, 90% { transform: translateX(-1px); }
+      20%, 80% { transform: translateX(2px); }
+      30%, 50%, 70% { transform: translateX(-3px); }
+      40%, 60% { transform: translateX(3px); }
+    }
+  </style>
+</head>
+<body class="font-sans bg-light dark:bg-dark text-primary dark:text-light min-h-screen transition-colors duration-300">
+  <!-- 顶部导航栏 -->
+  <header class="border-b border-gray-300 dark:border-gray-700 py-3 px-4 sm:px-6">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 class="text-2xl font-bold tracking-wider">MetroWoldle</h1>
+      <div class="flex gap-3">
+        <button id="stats-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" disabled>
+          <i class="fa fa-bar-chart"></i>
+        </button>
+        <button id="help-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+          <i class="fa fa-question"></i>
+        </button>
+        <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+          <i class="fa fa-moon-o dark:hidden"></i>
+          <i class="fa fa-sun-o hidden dark:inline-block"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主游戏区域 -->
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 flex flex-col min-h-[calc(100vh-60px)]">
+    <!-- 初始提示 - 要求选择词库 -->
+    <div id="initial-prompt" class="text-center py-12 flex-grow flex flex-col items-center justify-center">
+      <div class="mb-6 text-5xl text-gray-400">
+        <i class="fa fa-file-text-o"></i>
+      </div>
+      <h2 class="text-2xl font-bold mb-4">请选择词库</h2>
+      <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+        请从词库列表中选择一个开始游戏
+      </p>
+      <button id="select-library-btn" class="px-6 py-3 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium">
+        <i class="fa fa-folder-open mr-2"></i>选择词库
+      </button>
+    </div>
+    
+    <!-- 游戏区域 (默认隐藏) -->
+    <div id="game-area" class="hidden flex flex-col h-full">
+      <!-- 当前使用的词库信息 -->
+      <div class="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        当前词库: <span id="current-library-name" class="font-medium"></span>
+      </div>
+      
+      <!-- 词汇长度选择 -->
+      <div id="length-selection" class="mb-6 text-center">
+        <label for="word-length" class="block mb-2 font-medium">选择站名字数:</label>
+        <div class="flex justify-center items-center gap-2 flex-wrap" id="length-options">
+          <!-- 长度选项将根据词库动态生成 -->
+        </div>
+      </div>
+      
+      <!-- 游戏状态提示 -->
+      <div id="game-message" class="mb-6 h-8 text-center font-medium text-lg hidden slide-in"></div>
+      
+      <!-- 游戏棋盘 - 只显示最近5行 -->
+      <div id="game-board-container" class="flex-grow overflow-y-auto mb-6">
+        <div id="game-board" class="grid gap-3 max-w-2xl mx-auto">
+          <!-- 游戏格子将通过JS动态生成 -->
+        </div>
+      </div>
+      
+      <!-- 输入区域 - 放在最下面 -->
+      <div class="mb-4 text-center">
+        <label for="word-input" class="block mb-2 font-medium">请输入<span id="length-display">X</span>个字的站名:</label>
+        <input type="text" id="word-input" class="text-xl sm:text-2xl px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-success max-w-[200px] text-center" maxlength="8">
+        <div class="mt-4">
+          <button id="submit-btn" class="px-6 py-2 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium mr-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa fa-check mr-1"></i> 提交
+          </button>
+          <button id="clear-btn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa fa-times mr-1"></i> 清除
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 词库选择弹窗 -->
+  <div id="library-selection-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-light dark:bg-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl slide-in max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">选择词库</h2>
+        <button id="close-library-modal" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        从词库列表中选择一个:
+      </p>
+      
+      <div id="library-list" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1 mb-6">
+        <!-- 词库文件列表将通过JS动态生成 -->
+        <div class="text-center text-gray-500 py-8" id="loading-libraries">
+          <i class="fa fa-spinner fa-spin mr-2"></i>正在加载词库...
+        </div>
+        <div class="text-center text-gray-500 py-8 hidden" id="no-libraries-found">
+          未找到词库数据
+        </div>
+      </div>
+      
+      <div class="mt-6">
+        <button id="refresh-libraries" class="w-full py-3 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium mb-3">
+          <i class="fa fa-refresh mr-2"></i>刷新词库列表
+        </button>
+        <button id="use-selected-library" class="w-full py-3 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium" disabled>
+          开始游戏
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 其他弹窗结构保持不变 -->
+  <div id="stats-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <!-- 统计弹窗内容 -->
+    <div class="bg-light dark:bg-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl slide-in">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">游戏统计</h2>
+        <button id="close-stats" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="flex justify-center mb-6">
+        <div class="w-24 h-24 rounded-full bg-success text-white flex items-center justify-center text-3xl font-bold">
+          <span id="win-rate">0%</span>
+        </div>
+      </div>
+      
+      <div class="space-y-3 mb-6">
+        <div class="flex justify-between">
+          <span>总游戏次数</span>
+          <span id="total-games" class="font-medium">0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>获胜次数</span>
+          <span id="win-games" class="font-medium">0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>当前连胜</span>
+          <span id="current-streak" class="font-medium">0</span>
+        </div>
+        <div class="flex justify-between">
+          <span>最长连胜</span>
+          <span id="max-streak" class="font-medium">0</span>
+        </div>
+      </div>
+      
+      <button id="reset-stats" class="mt-6 w-full py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+        重置统计数据
+      </button>
+    </div>
+  </div>
+
+  <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <!-- 帮助弹窗内容 -->
+    <div class="bg-light dark:bg-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl slide-in max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">游戏规则</h2>
+        <button id="close-help" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="space-y-4">
+        <p>猜一个指定长度的地铁站名，有无限次机会直到猜对为止。</p>
+        
+        <div>
+          <h3 class="font-medium mb-2">如何玩</h3>
+          <ul class="list-disc pl-5 space-y-2">
+            <li>先选择要猜测的站名字数</li>
+            <li>在输入框中输入对应长度的站名并提交</li>
+            <li>每次猜测后，汉字的背景颜色会变化，指示你离正确答案有多近</li>
+            <li>绿色表示该汉字正确且位置正确</li>
+            <li>黄色表示该汉字存在于词汇中，但位置错误</li>
+            <li>灰色表示该汉字不存在于词汇中</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <!-- 游戏结束弹窗内容 -->
+    <div class="bg-light dark:bg-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl slide-in">
+      <h2 id="game-over-title" class="text-2xl font-bold text-center mb-4"></h2>
+      <p id="game-over-message" class="text-center mb-6"></p>
+      
+      <div id="correct-word-display" class="flex justify-center gap-1 mb-6 hidden">
+        <!-- 正确词汇将通过JS动态生成 -->
+      </div>
+      
+      <div class="flex gap-3">
+        <button id="new-game-btn" class="flex-1 py-3 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium">
+          新游戏
+        </button>
+        <button id="change-library-btn" class="flex-1 py-3 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">
+          <i class="fa fa-book mr-1"></i> 更换词库
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 游戏配置 - 词库JSON文件路径
+    const LIBRARIES_JSON = 'word_libraries.json';  // 与HTML文件同目录
+    let WORD_LENGTH = 0;
+    const MAX_VISIBLE_ROWS = 5;
+    
+    // 游戏状态
+    let currentAttempts = 0;
+    let targetWord = '';
+    let gameOver = false;
+    let isWin = false;
+    let customWordList = [];
+    let selectedLibrary = '';
+    let allLibraries = {};  // 存储所有词库数据
+    
+    // 初始化游戏
+    document.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+      setupTheme();
+      loadStats();
+      
+      // 显示词库选择弹窗并加载词库
+      document.getElementById('library-selection-modal').classList.remove('hidden');
+      loadLibraryList();
+    });
+    
+    // 加载词库列表（从JSON文件）
+    function loadLibraryList() {
+      const libraryList = document.getElementById('library-list');
+      const loadingIndicator = document.getElementById('loading-libraries');
+      const noLibrariesFound = document.getElementById('no-libraries-found');
+      
+      if (!libraryList || !loadingIndicator || !noLibrariesFound) return;
+      
+      // 显示加载状态
+      libraryList.innerHTML = '';
+      loadingIndicator.classList.remove('hidden');
+      noLibrariesFound.classList.add('hidden');
+      
+      // 从JSON文件加载词库
+      fetch(LIBRARIES_JSON)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('词库文件未找到');
+          }
+          return response.json();
+        })
+        .then(data => {
+          allLibraries = data;
+          loadingIndicator.classList.add('hidden');
+          
+          // 获取所有词库名称
+          const libraryNames = Object.keys(allLibraries);
+          
+          if (libraryNames.length === 0) {
+            noLibrariesFound.classList.remove('hidden');
+            document.getElementById('use-selected-library').disabled = true;
+            return;
+          }
+          
+          // 生成词库列表
+          libraryNames.forEach(library => {
+            const item = document.createElement('div');
+            item.className = 'library-item p-3 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex justify-between items-center';
+            item.dataset.library = library;
+            
+            item.innerHTML = `
+              <div class="flex items-center">
+                <i class="fa fa-book mr-3 text-gray-500"></i>
+                <span>${library}</span>
+                <span class="ml-2 text-xs text-gray-500">(${allLibraries[library].length}个词汇)</span>
+              </div>
+              <i class="fa fa-check text-success hidden"></i>
+            `;
+            
+            item.addEventListener('click', () => {
+              // 移除其他项的选中状态
+              document.querySelectorAll('.library-item').forEach(i => {
+                i.classList.remove('bg-gray-100', 'dark:bg-gray-800', 'border-success');
+                i.querySelector('.fa-check').classList.add('hidden');
+              });
+              
+              // 设置当前项为选中状态
+              item.classList.add('bg-gray-100', 'dark:bg-gray-800', 'border-success');
+              item.querySelector('.fa-check').classList.remove('hidden');
+              
+              // 更新选中的词库
+              selectedLibrary = library;
+              document.getElementById('use-selected-library').disabled = false;
+            });
+            
+            libraryList.appendChild(item);
+          });
+        })
+        .catch(error => {
+          console.error('加载词库失败:', error);
+          loadingIndicator.classList.add('hidden');
+          noLibrariesFound.classList.remove('hidden');
+          noLibrariesFound.textContent = '加载词库失败，请检查word_libraries.json文件是否存在';
+          document.getElementById('use-selected-library').disabled = true;
+        });
+    }
+    
+    // 加载选中的词库
+    function loadSelectedLibrary() {
+      if (!selectedLibrary || !allLibraries[selectedLibrary]) return;
+      
+      // 显示加载状态
+      showMessage(`正在加载词库: ${selectedLibrary}`, 'text-blue-500');
+      
+      // 从已加载的词库数据中获取选中的词库
+      customWordList = allLibraries[selectedLibrary];
+      
+      // 更新UI
+      document.getElementById('current-library-name').textContent = selectedLibrary;
+      document.getElementById('library-selection-modal').classList.add('hidden');
+      document.getElementById('initial-prompt').classList.add('hidden');
+      document.getElementById('game-area').classList.remove('hidden');
+      
+      // 渲染长度选项并初始化游戏
+      renderLengthOptions();
+      initGame();
+      enableStatsButton();
+      
+      showMessage(`词库加载成功，包含 ${customWordList.length} 个词汇`, 'text-green-500');
+      setTimeout(() => {
+        showMessage('');
+      }, 2000);
+    }
+    
+    // 游戏核心逻辑（其他函数保持不变）
+    function initGame() {
+      clearGameBoard();
+      resetGameState();
+      
+      // 选择目标词汇
+      if (!chooseTargetWord()) {
+        showMessage(`没有找到长度为 ${WORD_LENGTH} 的站名，请选择其他长度`, 'text-amber-500');
+      }
+      
+      // 重置输入框
+      const input = document.getElementById('word-input');
+      if (input) {
+        input.value = '';
+        updateInputState();
+      }
+    }
+    
+    function chooseTargetWord() {
+      // 筛选出指定长度的词汇
+      const filteredWords = customWordList.filter(word => word.length === WORD_LENGTH);
+      
+      if (filteredWords.length === 0) {
+        return false;
+      }
+      
+      targetWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+      return true;
+    }
+    
+    function handleSubmit() {
+      const input = document.getElementById('word-input');
+      if (!input) return;
+      
+      const guess = input.value.trim();
+      
+      if (gameOver) return;
+      
+      // 验证输入长度
+      if (guess.length !== WORD_LENGTH) {
+        // 震动提示
+        input.classList.add('shake');
+        setTimeout(() => {
+          input.classList.remove('shake');
+        }, 500);
+        
+        showMessage(`请输入 ${WORD_LENGTH} 个字的站`, 'text-amber-500');
+        return;
+      }
+      
+      // 验证词汇是否在词库中
+      const filteredWords = customWordList.filter(word => word.length === WORD_LENGTH);
+      if (!filteredWords.includes(guess)) {
+        // 震动提示
+        input.classList.add('shake');
+        setTimeout(() => {
+          input.classList.remove('shake');
+        }, 500);
+        
+        showMessage('该车站不在词库中', 'text-red-500');
+        return;
+      }
+      
+      // 检查猜测结果
+      const result = checkGuess(guess);
+      addGuessRow(guess, result);
+      
+      // 清空输入框
+      input.value = '';
+      updateInputState();
+      
+      // 增加尝试次数
+      currentAttempts++;
+      
+      // 检查游戏是否结束
+      if (isWin) {
+        gameOver = true;
+        updateStats(true);
+        showGameOverModal(true);
+        return;
+      }
+    }
+    
+    // 其他游戏函数...
+    function checkGuess(guess) {
+      const targetArray = targetWord.split('');
+      const guessArray = guess.split('');
+      const result = Array(WORD_LENGTH).fill('');
+      
+      // 先检查完全正确的字符
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (guessArray[i] === targetArray[i]) {
+          result[i] = 'correct';
+          targetArray[i] = null; // 标记为已匹配
+        }
+      }
+      
+      // 再检查存在但位置错误的字符
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        if (result[i] === 'correct') continue;
+        
+        const index = targetArray.indexOf(guessArray[i]);
+        if (index !== -1) {
+          result[i] = 'present';
+          targetArray[index] = null; // 标记为已匹配
+        } else {
+          result[i] = 'absent';
+        }
+      }
+      
+      // 检查是否获胜
+      isWin = result.every(r => r === 'correct');
+      
+      return result;
+    }
+    
+    function showMessage(text, colorClass = '') {
+      const messageElement = document.getElementById('game-message');
+      if (!messageElement) return;
+      
+      messageElement.textContent = text;
+      messageElement.className = 'mb-6 h-8 text-center font-medium text-lg';
+      
+      if (text) {
+        messageElement.classList.add('slide-in');
+        if (colorClass) messageElement.classList.add(colorClass);
+      } else {
+        messageElement.classList.add('hidden');
+      }
+    }
+    
+    function renderLengthOptions() {
+      const lengthOptions = document.getElementById('length-options');
+      if (!lengthOptions) return;
+      
+      lengthOptions.innerHTML = '';
+      
+      // 获取所有独特的词汇长度
+      const lengths = [...new Set(customWordList.map(word => word.length))].sort((a, b) => a - b);
+      
+      if (lengths.length === 0) {
+        showMessage('当前词库中没有有效的站名', 'text-red-500');
+        return;
+      }
+      
+      // 生成长度选择按钮
+      lengths.forEach(length => {
+        const btn = document.createElement('button');
+        btn.className = 'length-btn w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors';
+        btn.dataset.length = length;
+        btn.textContent = length;
+        
+        // 为第一个长度设置为默认选中
+        if (lengths.indexOf(length) === 0) {
+          btn.classList.remove('bg-gray-200', 'dark:bg-gray-700');
+          btn.classList.add('bg-success', 'text-white');
+          WORD_LENGTH = length;
+          const lengthDisplay = document.getElementById('length-display');
+          if (lengthDisplay) lengthDisplay.textContent = length;
+          const wordInput = document.getElementById('word-input');
+          if (wordInput) wordInput.maxLength = length;
+        }
+        
+        btn.addEventListener('click', () => {
+          // 如果游戏进行中，需要确认
+          if (currentAttempts > 0) {
+            if (!confirm('切换站名字数将开始新游戏，确定要继续吗？')) {
+              return;
+            }
+          }
+          
+          // 更新选中状态
+          document.querySelectorAll('.length-btn').forEach(b => {
+            b.classList.remove('bg-success', 'text-white');
+            b.classList.add('bg-gray-200', 'dark:bg-gray-700');
+          });
+          btn.classList.remove('bg-gray-200', 'dark:bg-gray-700');
+          btn.classList.add('bg-success', 'text-white');
+          
+          // 设置新的词汇长度并重新开始游戏
+          WORD_LENGTH = parseInt(btn.dataset.length);
+          const lengthDisplay = document.getElementById('length-display');
+          if (lengthDisplay) lengthDisplay.textContent = WORD_LENGTH;
+          const wordInput = document.getElementById('word-input');
+          if (wordInput) wordInput.maxLength = WORD_LENGTH;
+          
+          initGame();
+        });
+        
+        lengthOptions.appendChild(btn);
+      });
+    }
+    
+    // 事件监听器设置
+    function setupEventListeners() {
+      // 输入框事件
+      const wordInput = document.getElementById('word-input');
+      if (wordInput) {
+        wordInput.addEventListener('input', updateInputState);
+        wordInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && !document.getElementById('submit-btn').disabled) {
+            handleSubmit();
+          }
+        });
+      }
+      
+      // 提交按钮
+      const submitBtn = document.getElementById('submit-btn');
+      if (submitBtn) {
+        submitBtn.addEventListener('click', handleSubmit);
+      }
+      
+      // 清除按钮
+      const clearBtn = document.getElementById('clear-btn');
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          if (wordInput) {
+            wordInput.value = '';
+            updateInputState();
+          }
+        });
+      }
+      
+      // 词库相关按钮
+      const selectLibraryBtn = document.getElementById('select-library-btn');
+      if (selectLibraryBtn) {
+        selectLibraryBtn.addEventListener('click', () => {
+          document.getElementById('library-selection-modal').classList.remove('hidden');
+          loadLibraryList();
+        });
+      }
+      
+      const closeLibraryModal = document.getElementById('close-library-modal');
+      if (closeLibraryModal) {
+        closeLibraryModal.addEventListener('click', () => {
+          if (selectedLibrary) {
+            document.getElementById('library-selection-modal').classList.add('hidden');
+          } else {
+            showMessage('请先选择一个词库', 'text-amber-500');
+          }
+        });
+      }
+      
+      const refreshLibraries = document.getElementById('refresh-libraries');
+      if (refreshLibraries) {
+        refreshLibraries.addEventListener('click', loadLibraryList);
+      }
+      
+      const useSelectedLibrary = document.getElementById('use-selected-library');
+      if (useSelectedLibrary) {
+        useSelectedLibrary.addEventListener('click', loadSelectedLibrary);
+      }
+      
+      // 其他按钮事件...
+      const statsBtn = document.getElementById('stats-btn');
+      if (statsBtn) {
+        statsBtn.addEventListener('click', () => {
+          document.getElementById('stats-modal').classList.remove('hidden');
+          updateStatsDisplay();
+        });
+      }
+      
+      const closeStats = document.getElementById('close-stats');
+      if (closeStats) {
+        closeStats.addEventListener('click', () => {
+          document.getElementById('stats-modal').classList.add('hidden');
+        });
+      }
+      
+      const resetStats = document.getElementById('reset-stats');
+      if (resetStats) {
+        resetStats.addEventListener('click', () => {
+          if (confirm('确定要重置所有统计数据吗？')) {
+            localStorage.removeItem('wordleStats');
+            loadStats();
+            updateStatsDisplay();
+          }
+        });
+      }
+      
+      const helpBtn = document.getElementById('help-btn');
+      if (helpBtn) {
+        helpBtn.addEventListener('click', () => {
+          document.getElementById('help-modal').classList.remove('hidden');
+        });
+      }
+      
+      const closeHelp = document.getElementById('close-help');
+      if (closeHelp) {
+        closeHelp.addEventListener('click', () => {
+          document.getElementById('help-modal').classList.add('hidden');
+        });
+      }
+      
+      const newGameBtn = document.getElementById('new-game-btn');
+      if (newGameBtn) {
+        newGameBtn.addEventListener('click', () => {
+          document.getElementById('game-over-modal').classList.add('hidden');
+          initGame();
+        });
+      }
+      
+      const changeLibraryBtn = document.getElementById('change-library-btn');
+      if (changeLibraryBtn) {
+        changeLibraryBtn.addEventListener('click', () => {
+          document.getElementById('game-over-modal').classList.add('hidden');
+          document.getElementById('library-selection-modal').classList.remove('hidden');
+        });
+      }
+      
+      // 主题切换
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+      }
+    }
+    
+    function updateInputState() {
+      const input = document.getElementById('word-input');
+      const submitBtn = document.getElementById('submit-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      
+      if (!input || !submitBtn || !clearBtn) return;
+      
+      submitBtn.disabled = input.value.trim().length === 0 || gameOver;
+      clearBtn.disabled = input.value.trim().length === 0;
+    }
+    
+    function addGuessRow(guess, result) {
+      const gameBoard = document.getElementById('game-board');
+      if (!gameBoard) return;
+      
+      // 创建新的一行
+      const row = document.createElement('div');
+      row.classList.add('flex', 'gap-2', 'justify-center', 'slide-in');
+      row.dataset.attempt = currentAttempts;
+      
+      // 添加每个字符的格子
+      for (let i = 0; i < WORD_LENGTH; i++) {
+        const box = document.createElement('div');
+        box.classList.add(
+          'w-12', 'h-12', 'sm:w-14', 'sm:h-14', 
+          'border-2', 'border-gray-300', 'dark:border-gray-700', 
+          'rounded-md', 'flex', 'items-center', 'justify-center', 
+          'text-xl', 'sm:text-2xl', 'font-bold', 'letter-anim'
+        );
+        box.textContent = guess[i];
+        row.appendChild(box);
+      }
+      
+      // 添加到棋盘顶部
+      gameBoard.prepend(row);
+      
+      // 如果超过最大显示行数，删除最后一行
+      const rows = gameBoard.querySelectorAll('div[data-attempt]');
+      if (rows.length > MAX_VISIBLE_ROWS) {
+        gameBoard.removeChild(rows[rows.length - 1]);
+      }
+      
+      // 应用颜色结果（带延迟动画）
+      setTimeout(() => {
+        const boxes = row.querySelectorAll('div');
+        result.forEach((res, i) => {
+          setTimeout(() => {
+            const box = boxes[i];
+            box.classList.remove('border-gray-300', 'dark:border-gray-700');
+            
+            if (res === 'correct') {
+              box.classList.add('bg-success', 'text-white', 'pulse-correct');
+            } else if (res === 'present') {
+              box.classList.add('bg-warning', 'text-white', 'pulse-correct');
+            } else {
+              box.classList.add('bg-neutral', 'text-white', 'pulse-correct');
+            }
+          }, i * 200);
+        });
+      }, 100);
+    }
+    
+    function clearGameBoard() {
+      const gameBoard = document.getElementById('game-board');
+      if (gameBoard) gameBoard.innerHTML = '';
+    }
+    
+    function resetGameState() {
+      currentAttempts = 0;
+      gameOver = false;
+      isWin = false;
+      const messageElement = document.getElementById('game-message');
+      if (messageElement) messageElement.classList.add('hidden');
+    }
+    
+    function showGameOverModal(isWin) {
+      const modal = document.getElementById('game-over-modal');
+      const title = document.getElementById('game-over-title');
+      const message = document.getElementById('game-over-message');
+      const correctWordDisplay = document.getElementById('correct-word-display');
+      
+      if (!modal || !title || !message || !correctWordDisplay) return;
+      
+      if (isWin) {
+        title.textContent = '恭喜你!';
+        title.classList.add('text-success');
+        message.textContent = `你用了 ${currentAttempts} 次猜出了正确答案`;
+        correctWordDisplay.classList.add('hidden');
+      } else {
+        title.textContent = '游戏结束';
+        title.classList.add('text-neutral');
+        message.textContent = '很遗憾，你没有猜出正确答案';
+        
+        // 显示正确词汇
+        correctWordDisplay.innerHTML = '';
+        correctWordDisplay.classList.remove('hidden');
+        for (const char of targetWord) {
+          const box = document.createElement('div');
+          box.classList.add(
+            'w-10', 'h-10', 'bg-success', 'text-white', 
+            'flex', 'items-center', 'justify-center', 'font-bold'
+          );
+          box.textContent = char;
+          correctWordDisplay.appendChild(box);
+        }
+      }
+      
+      modal.classList.remove('hidden');
+    }
+    
+    // 统计相关函数
+    let stats = {
+      totalGames: 0,
+      winGames: 0,
+      currentStreak: 0,
+      maxStreak: 0
+    };
+    
+    function loadStats() {
+      const savedStats = localStorage.getItem('wordleStats');
+      if (savedStats) {
+        try {
+          stats = JSON.parse(savedStats);
+        } catch (e) {
+          console.error('加载统计数据失败:', e);
+          stats = {
+            totalGames: 0,
+            winGames: 0,
+            currentStreak: 0,
+            maxStreak: 0
+          };
+        }
+      } else {
+        stats = {
+          totalGames: 0,
+          winGames: 0,
+          currentStreak: 0,
+          maxStreak: 0
+        };
+      }
+    }
+    
+    function updateStats(isWin) {
+      stats.totalGames++;
+      
+      if (isWin) {
+        stats.winGames++;
+        stats.currentStreak++;
+        stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
+      } else {
+        stats.currentStreak = 0;
+      }
+      
+      localStorage.setItem('wordleStats', JSON.stringify(stats));
+      updateStatsDisplay();
+    }
+    
+    function updateStatsDisplay() {
+      const winRate = stats.totalGames > 0 
+        ? Math.round((stats.winGames / stats.totalGames) * 100) 
+        : 0;
+      
+      document.getElementById('win-rate').textContent = `${winRate}%`;
+      document.getElementById('total-games').textContent = stats.totalGames;
+      document.getElementById('win-games').textContent = stats.winGames;
+      document.getElementById('current-streak').textContent = stats.currentStreak;
+      document.getElementById('max-streak').textContent = stats.maxStreak;
+    }
+    
+    function enableStatsButton() {
+      const statsBtn = document.getElementById('stats-btn');
+      if (statsBtn) {
+        statsBtn.disabled = false;
+        statsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+    
+    // 主题相关函数
+    function setupTheme() {
+      if (localStorage.getItem('theme') === 'dark' || 
+          (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+    
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+  </script>
+</body>
+</html>
