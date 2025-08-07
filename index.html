@@ -133,6 +133,19 @@
       <!-- 游戏状态提示 -->
       <div id="game-message" class="mb-6 h-8 text-center font-medium text-lg hidden slide-in"></div>
 
+      <!-- 提示按钮 -->
+      <div id="hint-container" class="mb-6 text-center hidden">
+        <button id="hint-btn"
+          class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium">
+          <i class="fa fa-lightbulb-o mr-1"></i> 查看提示
+        </button>
+      </div>
+
+      <!-- 新增：提示展示区域 -->
+      <div id="hint-display" class="mb-6 flex justify-center gap-2 hidden">
+        <!-- 提示框将通过JS动态生成 -->
+      </div>
+
       <!-- 游戏棋盘 - 只显示最近5行 -->
       <div id="game-board-container" class="flex-grow overflow-y-auto mb-6">
         <div id="game-board" class="grid gap-3 max-w-2xl mx-auto">
@@ -140,6 +153,7 @@
         </div>
       </div>
 
+      <!-- 输入区域 - 放在最下面 -->
       <!-- 输入区域 - 放在最下面 -->
       <div class="mb-4 text-center">
         <label for="word-input" class="block mb-2 font-medium">请输入<span id="length-display">X</span>个字的站名:</label>
@@ -152,14 +166,6 @@
             disabled>
             <i class="fa fa-check mr-1"></i> 提交
           </button>
-          <button id="clear-btn"
-            class="px-6 py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled>
-            <i class="fa fa-times mr-1"></i> 清除
-          </button>
-
-        </div>
-        <div class="mt-3">
           <button id="give-up-btn"
             class="px-6 py-2 bg-neutral text-white rounded-md hover:bg-opacity-90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
             <i class="fa fa-flag mr-1"></i> 放弃游戏
@@ -313,6 +319,7 @@
     const MAX_VISIBLE_ROWS = 5;
 
     // 游戏状态
+    // 游戏状态
     let currentAttempts = 0;
     let targetWord = '';
     let gameOver = false;
@@ -320,6 +327,8 @@
     let customWordList = [];
     let selectedLibrary = '';
     let allLibraries = {};  // 存储所有词库数据
+    let hintUsed = false;   // 新增：提示是否已使用
+    let hintCharacter = ''; // 新增：提示的字符
 
     // 初始化游戏
     document.addEventListener('DOMContentLoaded', () => {
@@ -483,6 +492,14 @@
 
       if (gameOver) return;
 
+      // 新增：清除所有提示信息
+      showMessage('');
+      const hintDisplay = document.getElementById('hint-display');
+      if (hintDisplay) {
+        hintDisplay.innerHTML = '';
+        hintDisplay.classList.add('hidden');
+      }
+
       // 验证输入长度
       if (guess.length !== WORD_LENGTH) {
         // 震动提示
@@ -508,6 +525,7 @@
         return;
       }
 
+
       // 检查猜测结果
       const result = checkGuess(guess);
       addGuessRow(guess, result);
@@ -519,6 +537,10 @@
       // 增加尝试次数
       currentAttempts++;
 
+      // 新增：5次尝试后显示提示按钮（如果未使用过提示且游戏未结束）
+      if (currentAttempts >= 5 && !hintUsed && !gameOver) {
+        document.getElementById('hint-container').classList.remove('hidden');
+      }
       // 检查游戏是否结束
       if (isWin) {
         gameOver = true;
@@ -650,6 +672,82 @@
           }
         });
       }
+      // 提示按钮事件
+      const hintBtn = document.getElementById('hint-btn');
+      if (hintBtn) {
+        hintBtn.addEventListener('click', () => {
+          if (hintUsed || gameOver) return;
+          showMessage('');
+          // 找到第一个未被正确猜到的位置和字符
+          let hintPos = -1;
+          let hintChar = '';
+
+          // 检查所有已猜行，找到第一个未被正确猜到的字符位置
+          const guessRows = document.querySelectorAll('#game-board > div');
+          const correctlyGuessed = new Array(WORD_LENGTH).fill(false);
+
+          // 标记已经猜对的位置
+          guessRows.forEach(row => {
+            const boxes = row.querySelectorAll('div');
+            boxes.forEach((box, index) => {
+              if (box.classList.contains('bg-success')) {
+                correctlyGuessed[index] = true;
+              }
+            });
+          });
+
+          // 找到第一个未被猜对的位置作为提示
+          for (let i = 0; i < WORD_LENGTH; i++) {
+            if (!correctlyGuessed[i]) {
+              hintPos = i;
+              hintChar = targetWord[i];
+              break;
+            }
+          }
+
+          // 如果所有位置都被部分猜对了，随机选一个位置
+          if (hintPos === -1) {
+            hintPos = Math.floor(Math.random() * WORD_LENGTH);
+            hintChar = targetWord[hintPos];
+          }
+
+          hintCharacter = hintChar;
+          hintUsed = true;
+
+          // 生成提示展示框
+          const hintDisplay = document.getElementById('hint-display');
+          hintDisplay.innerHTML = '';
+          hintDisplay.classList.remove('hidden');
+
+          for (let i = 0; i < WORD_LENGTH; i++) {
+            const box = document.createElement('div');
+            box.classList.add(
+              'w-12', 'h-12', 'sm:w-14', 'sm:h-14',
+              'border-2', 'rounded-md', 'flex', 'items-center',
+              'justify-center', 'text-xl', 'sm:text-2xl', 'font-bold',
+              'scale-in'
+            );
+
+            if (i === hintPos) {
+              // 提示的字符 - 绿色背景
+              box.classList.add('bg-success', 'text-white', 'border-success');
+              box.textContent = hintChar;
+            } else {
+              // 未知字符 - 灰色边框和问号
+              box.classList.add('border-gray-300', 'dark:border-gray-700', 'text-gray-400');
+              box.textContent = '?';
+            }
+
+            hintDisplay.appendChild(box);
+            // 添加延迟动画效果
+            box.style.animationDelay = `${i * 100}ms`;
+          }
+
+          // 隐藏提示按钮
+          document.getElementById('hint-container').classList.add('hidden');
+        });
+      }
+
 
       // 放弃游戏按钮
       const giveUpBtn = document.getElementById('give-up-btn');
@@ -672,16 +770,7 @@
         submitBtn.addEventListener('click', handleSubmit);
       }
 
-      // 清除按钮
-      const clearBtn = document.getElementById('clear-btn');
-      if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-          if (wordInput) {
-            wordInput.value = '';
-            updateInputState();
-          }
-        });
-      }
+
 
       //放弃按钮
 
@@ -783,12 +872,11 @@
     function updateInputState() {
       const input = document.getElementById('word-input');
       const submitBtn = document.getElementById('submit-btn');
-      const clearBtn = document.getElementById('clear-btn');
 
-      if (!input || !submitBtn || !clearBtn) return;
+      if (!input || !submitBtn) return;
 
+      // 只更新提交按钮状态，不再处理清除按钮
       submitBtn.disabled = input.value.trim().length === 0 || gameOver;
-      clearBtn.disabled = input.value.trim().length === 0;
     }
 
     function addGuessRow(guess, result) {
@@ -851,8 +939,21 @@
       currentAttempts = 0;
       gameOver = false;
       isWin = false;
+      hintUsed = false;
+      hintCharacter = '';
+
+      // 重置提示相关元素
       const messageElement = document.getElementById('game-message');
       if (messageElement) messageElement.classList.add('hidden');
+
+      const hintContainer = document.getElementById('hint-container');
+      if (hintContainer) hintContainer.classList.add('hidden');
+
+      const hintDisplay = document.getElementById('hint-display');
+      if (hintDisplay) {
+        hintDisplay.innerHTML = '';
+        hintDisplay.classList.add('hidden');
+      }
 
       // 启用放弃按钮
       const giveUpBtn = document.getElementById('give-up-btn');
@@ -872,7 +973,9 @@
       if (isWin) {
         title.textContent = '恭喜你!';
         title.classList.add('text-success');
-        message.textContent = `你用了 ${currentAttempts} 次猜出了正确答案`;
+        // 显示是否使用了提示
+        const hintText = hintUsed ? `（使用了提示）` : '';
+        message.textContent = `你用了 ${currentAttempts} 次猜出了正确答案 ${hintText}`;
         correctWordDisplay.classList.add('hidden');
       } else {
         title.textContent = '游戏结束';
@@ -892,6 +995,8 @@
           correctWordDisplay.appendChild(box);
         }
       }
+
+      // 禁用放弃按钮
       const giveUpBtn = document.getElementById('give-up-btn');
       if (giveUpBtn) {
         giveUpBtn.disabled = true;
