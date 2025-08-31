@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MetroWordle</title>
+  <title>MetroWordle - 版本升级公告</title>
   <!-- 引入外部资源 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -21,7 +21,8 @@
             warning: '#c9b458',
             neutral: '#787c7e',
             light: '#f8f9fa',
-            dark: '#121213'
+            dark: '#121213',
+            primary-blue: '#3b82f6' // 新增社区版主色调
           },
           fontFamily: {
             sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -36,31 +37,12 @@
       .content-auto {
         content-visibility: auto;
       }
-      .letter-anim {
-        transition: all 0.3s ease-in-out;
-      }
-      .pulse-correct {
-        animation: pulse-correct 0.5s ease-in-out;
-      }
-      .scale-in {
-        animation: scale-in 0.2s ease-out;
-      }
       .slide-in {
-        animation: slide-in 0.3s ease-out;
+        animation: slide-in 0.5s ease-out;
       }
-      .shake {
-        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+      .pulse-highlight {
+        animation: pulse-highlight 2s infinite;
       }
-    }
-    
-    @keyframes pulse-correct {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
-    
-    @keyframes scale-in {
-      0% { transform: scale(0.8); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
     }
     
     @keyframes slide-in {
@@ -68,11 +50,9 @@
       100% { transform: translateY(0); opacity: 1; }
     }
     
-    @keyframes shake {
-      10%, 90% { transform: translateX(-1px); }
-      20%, 80% { transform: translateX(2px); }
-      30%, 50%, 70% { transform: translateX(-3px); }
-      40%, 60% { transform: translateX(3px); }
+    @keyframes pulse-highlight {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
     }
   </style>
 </head>
@@ -83,13 +63,6 @@
     <div class="max-w-4xl mx-auto flex justify-between items-center">
       <h1 class="text-2xl font-bold tracking-wider">MetroWordle</h1>
       <div class="flex gap-3">
-        <button id="stats-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
-          disabled>
-          <i class="fa fa-bar-chart"></i>
-        </button>
-        <button id="help-btn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
-          <i class="fa fa-question"></i>
-        </button>
         <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
           <i class="fa fa-moon-o dark:hidden"></i>
           <i class="fa fa-sun-o hidden dark:inline-block"></i>
@@ -98,1000 +71,121 @@
     </div>
   </header>
 
-  <!-- 主游戏区域 -->
+  <!-- 主公告区域 -->
   <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 flex flex-col min-h-[calc(100vh-60px)]">
-    <!-- 初始提示 - 要求选择词库 -->
-    <div id="initial-prompt" class="text-center py-12 flex-grow flex flex-col items-center justify-center">
-      <div class="mb-6 text-5xl text-gray-400">
-        <i class="fa fa-file-text-o"></i>
-      </div>
-      <h2 class="text-2xl font-bold mb-4">请选择词库</h2>
-      <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-        请从词库列表中选择一个开始游戏
+    <!-- 顶部通知栏 -->
+    <div class="bg-primary-blue/10 dark:bg-primary-blue/20 border border-primary-blue/30 rounded-lg p-4 mb-6 text-center slide-in">
+      <p class="text-primary-blue font-medium flex items-center justify-center">
+        <i class="fa fa-bell-o mr-2"></i>
+        <span>重要时间节点：单机版8月31日停服 | 社区版9月12日公测 | 10月1日正式发布</span>
       </p>
-      <button id="select-library-btn"
-        class="px-6 py-3 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium">
-        <i class="fa fa-folder-open mr-2"></i>选择词库
-      </button>
     </div>
 
-    <!-- 游戏区域 (默认隐藏) -->
-    <div id="game-area" class="hidden flex flex-col h-full">
-      <!-- 当前使用的词库信息 -->
-      <div class="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">
-        当前词库: <span id="current-library-name" class="font-medium"></span>
+    <!-- 核心公告卡片 -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8 mb-8 slide-in" style="animation-delay: 100ms">
+      <!-- 公告标题区域 -->
+      <div class="flex flex-col items-center mb-8 text-center">
+        <div class="w-16 h-16 bg-primary-blue/10 dark:bg-primary-blue/20 rounded-full flex items-center justify-center mb-4 pulse-highlight">
+          <i class="fa fa-rocket text-2xl text-primary-blue"></i>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-bold mb-2 text-primary-blue">MetroWordle 版本升级公告</h2>
+        <p class="text-gray-500 dark:text-gray-400">发布日期：2024年8月31日</p>
       </div>
 
-      <!-- 词汇长度选择 -->
-      <div id="length-selection" class="mb-6 text-center">
-        <label for="word-length" class="block mb-2 font-medium">选择站名字数:</label>
-        <div class="flex justify-center items-center gap-2 flex-wrap" id="length-options">
-          <!-- 长度选项将根据词库动态生成 -->
+      <!-- 公告核心内容 -->
+      <div class="space-y-6 text-gray-700 dark:text-gray-300 mb-8">
+        <p>亲爱的 MetroWordle 玩家：</p>
+        
+        <p>首先，衷心感谢大家对 MetroWordle 单机版的支持与喜爱！为了提供更丰富的游戏体验、更强的社交互动和更持久的更新服务，我们决定进行版本重大升级——<span class="font-bold text-primary-blue">停止单机版运营，并于10月1日正式发布「MetroWordle 社区版」</span>。</p>
+
+        <!-- 单机版停服说明 -->
+        <div class="bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-400 p-4 rounded-r-md">
+          <p class="font-medium text-amber-800 dark:text-amber-300">【单机版停服通知】</p>
+          <p class="text-amber-700 dark:text-amber-200 mt-1">
+            现有单机版已于 <span class="font-bold">2024年8月31日22:30</span> 正式停止运营，停服后将无法继续使用单机版功能。
+            
+          </p>
+        </div>
+
+        <!-- 社区版公测邀请 -->
+        <div class="bg-primary-blue/5 dark:bg-primary-blue/10 border-l-4 border-primary-blue p-4 rounded-r-md">
+          <p class="font-medium text-primary-blue dark:text-primary-blue-300">【社区版公测邀请】</p>
+          <p class="text-gray-700 dark:text-gray-300 mt-1">
+            我们将于 <span class="font-bold">2024年9月12日00:00</span> 开启「MetroWordle 社区版」公测！
+            本次公测开放限量名额，<span class="text-primary-blue font-medium">对社区版感兴趣的玩家可加入 QQ交流群</span>，群内将同步公测报名方式、测试指南和专属福利，更有机会优先获得公测资格！
+          </p>
+        </div>
+
+        <!-- QQ群招募 -->
+        <div class="flex flex-col sm:flex-row items-center justify-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+          <i class="fa fa-qq text-4xl text-primary-blue mr-0 sm:mr-4 mb-3 sm:mb-0"></i>
+          <div class="text-center sm:text-left">
+            <p class="font-medium mb-1">MetroWordle 社区版交流群</p>
+            <p class="text-gray-600 dark:text-gray-400 mb-2">群号：<span class="font-bold text-primary-blue">1061770736</span></p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              入群福利：公测资格优先获取、内测实况展示、社区版功能抢先体验、测试专属奖励
+            </p>
+          </div>
         </div>
       </div>
 
-      <!-- 游戏状态提示 -->
-      <div id="game-message" class="mb-6 h-8 text-center font-medium text-lg hidden slide-in"></div>
-
-      <!-- 提示按钮 -->
-      <div id="hint-container" class="mb-6 text-center hidden">
-        <button id="hint-btn"
-          class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium">
-          <i class="fa fa-lightbulb-o mr-1"></i> 查看提示
-        </button>
-      </div>
-
-      <!-- 新增：提示展示区域 -->
-      <div id="hint-display" class="mb-6 flex justify-center gap-2 hidden">
-        <!-- 提示框将通过JS动态生成 -->
-      </div>
-
-      <!-- 游戏棋盘 - 只显示最近5行 -->
-      <div id="game-board-container" class="flex-grow overflow-y-auto mb-6">
-        <div id="game-board" class="grid gap-3 max-w-2xl mx-auto">
-          <!-- 游戏格子将通过JS动态生成 -->
+      <!-- 社区版亮点功能 -->
+      <div class="mb-6">
+        <h3 class="text-2xl font-semibold text-center mb-6 text-gray-800 dark:text-gray-200">「MetroWordle 社区版」亮点功能</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- 功能卡片1 -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg flex items-start">
+            <i class="fa fa-trophy text-xl text-warning mt-1 mr-3"></i>
+            <div>
+              <p class="font-medium mb-1">擂台PK游戏</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">与其他玩家游戏记录对战，比拼猜词速度，进行段位分评定</p>
+            </div>
+          </div>
+          
+          <!-- 功能卡片2 -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg flex items-start">
+            <i class="fa fa-calendar-check-o text-xl text-success mt-1 mr-3"></i>
+            <div>
+              <p class="font-medium mb-1">每日挑战</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">每日发布限时挑战，你能连胜多少天？</p>
+            </div>
+          </div>
+          
+          <!-- 功能卡片3 -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg flex items-start">
+            <i class="fa fa-infinity text-xl text-primary-blue mt-1 mr-3"></i>
+            <div>
+              <p class="font-medium mb-1">多游戏模式</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">包含无限模式（自由猜词）、挑战模式（限定次数），满足不同玩家需求</p>
+            </div>
+          </div>
+          
+          <!-- 功能卡片4 -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg flex items-start">
+            <i class="fa fa-user-circle-o text-xl text-neutral mt-1 mr-3"></i>
+            <div>
+              <p class="font-medium mb-1">用户等级系统</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">通过游戏对局积累经验，解锁专属等级标识和用户名标签</p>
+            </div>
+          </div>
+          
+          <!-- 功能卡片5 -->
+          <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg flex items-start sm:col-span-2">
+            <i class="fa fa-list-ol text-xl text-primary mt-1 mr-3"></i>
+            <div>
+              <p class="font-medium mb-1">排行榜系统</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">实时更新各题库排行榜，谁能称王？</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 输入区域 - 放在最下面 -->
-      <!-- 输入区域 - 放在最下面 -->
-      <div class="mb-4 text-center">
-        <label for="word-input" class="block mb-2 font-medium">请输入<span id="length-display">X</span>个字的站名:</label>
-        <input type="text" id="word-input"
-          class="text-xl sm:text-2xl px-4 py-3 border-2 border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:outline-none focus:ring-2 focus:ring-success max-w-[200px] text-center"
-          maxlength="8">
-        <div class="mt-4">
-          <button id="submit-btn"
-            class="px-6 py-2 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium mr-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled>
-            <i class="fa fa-check mr-1"></i> 提交
-          </button>
-          <button id="give-up-btn"
-            class="px-6 py-2 bg-neutral text-white rounded-md hover:bg-opacity-90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-            <i class="fa fa-flag mr-1"></i> 放弃游戏
-          </button>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- 词库选择弹窗 (调整后) -->
-  <div id="library-selection-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div
-      class="bg-light dark:bg-dark rounded-xl p-6 max-w-3xl w-full mx-4 shadow-2xl slide-in max-h-[80vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">选择词库</h2>
-        <button id="close-library-modal" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full">
-          <i class="fa fa-times"></i>
-        </button>
-      </div>
-
-      <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        从词库列表中选择一个:
+      <!-- 底部致谢 -->
+      <p class="text-center italic text-gray-600 dark:text-gray-400">
+        从单机到社区，我们始终致力于为玩家打造更优质的地铁猜词体验。感谢您的理解与支持，期待在社区版与您相遇！
       </p>
-
-      <!-- 调整为每行3个，每个项更宽 -->
-      <div id="library-list"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto pr-1 mb-8">
-        <!-- 词库文件列表将通过JS动态生成 -->
-        <div class="text-center text-gray-500 py-8 col-span-full" id="loading-libraries">
-          <i class="fa fa-spinner fa-spin mr-2"></i>正在加载词库...
-        </div>
-        <div class="text-center text-gray-500 py-8 col-span-full hidden" id="no-libraries-found">
-          未找到词库数据
-        </div>
-      </div>
-
-      <div class="mt-6">
-        <button id="refresh-libraries"
-          class="w-full py-3 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium mb-3">
-          <i class="fa fa-refresh mr-2"></i>刷新词库列表
-        </button>
-        <button id="use-selected-library"
-          class="w-full py-3 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium"
-          disabled>
-          开始游戏
-        </button>
-      </div>
     </div>
-  </div>
 
-
-  <!-- 其他弹窗结构保持不变 -->
-  <div id="stats-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <!-- 统计弹窗内容 -->
-    <div class="bg-light dark:bg-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl slide-in">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">游戏统计</h2>
-        <button id="close-stats" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full">
-          <i class="fa fa-times"></i>
-        </button>
-      </div>
-
-      <div class="flex justify-center mb-6">
-        <div class="w-24 h-24 rounded-full bg-success text-white flex items-center justify-center text-3xl font-bold">
-          <span id="win-rate">0%</span>
-        </div>
-      </div>
-
-      <div class="space-y-3 mb-6">
-        <div class="flex justify-between">
-          <span>总游戏次数</span>
-          <span id="total-games" class="font-medium">0</span>
-        </div>
-        <div class="flex justify-between">
-          <span>获胜次数</span>
-          <span id="win-games" class="font-medium">0</span>
-        </div>
-        <div class="flex justify-between">
-          <span>当前连胜</span>
-          <span id="current-streak" class="font-medium">0</span>
-        </div>
-        <div class="flex justify-between">
-          <span>最长连胜</span>
-          <span id="max-streak" class="font-medium">0</span>
-        </div>
-      </div>
-
-      <button id="reset-stats"
-        class="mt-6 w-full py-2 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-        重置统计数据
-      </button>
-    </div>
-  </div>
-
-  <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <!-- 帮助弹窗内容 -->
-    <div
-      class="bg-light dark:bg-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl slide-in max-h-[80vh] overflow-y-auto">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">游戏规则</h2>
-        <button id="close-help" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-full">
-          <i class="fa fa-times"></i>
-        </button>
-      </div>
-
-      <div class="space-y-4">
-        <p>猜一个指定长度的地铁站名，有无限次机会直到猜对为止。</p>
-
-        <div>
-          <h3 class="font-medium mb-2">如何玩</h3>
-          <ul class="list-disc pl-5 space-y-2">
-            <li>先选择要猜测的站名字数</li>
-            <li>在输入框中输入对应长度的站名并提交</li>
-            <li>每次猜测后，汉字的背景颜色会变化，指示你离正确答案有多近</li>
-            <li>绿色表示该汉字正确且位置正确</li>
-            <li>黄色表示该汉字存在于词汇中，但位置错误</li>
-            <li>灰色表示该汉字不存在于词汇中</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <!-- 游戏结束弹窗内容 -->
-    <div class="bg-light dark:bg-dark rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl slide-in">
-      <h2 id="game-over-title" class="text-2xl font-bold text-center mb-4"></h2>
-      <p id="game-over-message" class="text-center mb-6"></p>
-
-      <div id="correct-word-display" class="flex justify-center gap-1 mb-6 hidden">
-        <!-- 正确词汇将通过JS动态生成 -->
-      </div>
-
-      <div class="flex gap-3">
-        <button id="new-game-btn"
-          class="flex-1 py-3 bg-success text-white rounded-md hover:bg-opacity-90 transition-colors font-medium">
-          新游戏
-        </button>
-        <button id="change-library-btn"
-          class="flex-1 py-3 bg-gray-200 dark:bg-gray-700 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium">
-          <i class="fa fa-book mr-1"></i> 更换词库
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // 游戏配置 - 词库JSON文件路径
-    const LIBRARIES_JSON = 'word_libraries.json';  // 与HTML文件同目录
-    let WORD_LENGTH = 0;
-    const MAX_VISIBLE_ROWS = 5;
-
-    // 游戏状态
-    // 游戏状态
-    let currentAttempts = 0;
-    let targetWord = '';
-    let gameOver = false;
-    let isWin = false;
-    let customWordList = [];
-    let selectedLibrary = '';
-    let allLibraries = {};  // 存储所有词库数据
-    let hintUsed = false;   // 新增：提示是否已使用
-    let hintCharacter = ''; // 新增：提示的字符
-
-    // 初始化游戏
-    document.addEventListener('DOMContentLoaded', () => {
-      setupEventListeners();
-      setupTheme();
-      loadStats();
-
-      // 显示词库选择弹窗并加载词库
-      document.getElementById('library-selection-modal').classList.remove('hidden');
-      loadLibraryList();
-    });
-
-    // 加载词库列表（从JSON文件）
-    function loadLibraryList() {
-      const libraryList = document.getElementById('library-list');
-      const loadingIndicator = document.getElementById('loading-libraries');
-      const noLibrariesFound = document.getElementById('no-libraries-found');
-
-      if (!libraryList || !loadingIndicator || !noLibrariesFound) return;
-
-      // 显示加载状态
-      libraryList.innerHTML = '';
-      loadingIndicator.classList.remove('hidden');
-      noLibrariesFound.classList.add('hidden');
-
-      // 从JSON文件加载词库
-      fetch(LIBRARIES_JSON)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('词库文件未找到');
-          }
-          return response.json();
-        })
-        .then(data => {
-          allLibraries = data;
-          loadingIndicator.classList.add('hidden');
-
-          // 获取所有词库名称
-          const libraryNames = Object.keys(allLibraries);
-
-          if (libraryNames.length === 0) {
-            noLibrariesFound.classList.remove('hidden');
-            document.getElementById('use-selected-library').disabled = true;
-            return;
-          }
-
-          // 生成词库列表
-          // 生成词库列表 (修改后)
-          // 生成词库列表项 (更新后)
-          libraryNames.forEach(library => {
-            const item = document.createElement('div');
-            item.className = 'library-item p-4 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer flex justify-between items-center';
-            item.dataset.library = library;
-
-            item.innerHTML = `
-    <div class="flex items-center flex-1">
-      <i class="fa fa-book mr-3 text-gray-500"></i>
-      <span class="truncate">${library}</span>
-    </div>
-    <i class="fa fa-check text-success hidden ml-2"></i>
-  `;
-
-            // 点击事件处理保持不变...
-            item.addEventListener('click', () => {
-              // 移除其他项的选中状态
-              document.querySelectorAll('.library-item').forEach(i => {
-                i.classList.remove('bg-gray-100', 'dark:bg-gray-800', 'border-success');
-                i.querySelector('.fa-check').classList.add('hidden');
-              });
-
-              // 设置当前项为选中状态
-              item.classList.add('bg-gray-100', 'dark:bg-gray-800', 'border-success');
-              item.querySelector('.fa-check').classList.remove('hidden');
-
-              // 更新选中的词库
-              selectedLibrary = library;
-              document.getElementById('use-selected-library').disabled = false;
-            });
-
-            libraryList.appendChild(item);
-          });
-        })
-        .catch(error => {
-          console.error('加载词库失败:', error);
-          loadingIndicator.classList.add('hidden');
-          noLibrariesFound.classList.remove('hidden');
-          noLibrariesFound.textContent = '加载词库失败，请检查word_libraries.json文件是否存在';
-          document.getElementById('use-selected-library').disabled = true;
-        });
-    }
-
-    // 加载选中的词库
-    function loadSelectedLibrary() {
-      if (!selectedLibrary || !allLibraries[selectedLibrary]) return;
-
-      // 显示加载状态
-      showMessage(`正在加载词库: ${selectedLibrary}`, 'text-blue-500');
-
-      // 从已加载的词库数据中获取选中的词库
-      customWordList = allLibraries[selectedLibrary];
-
-      // 更新UI
-      document.getElementById('current-library-name').textContent = selectedLibrary;
-      document.getElementById('library-selection-modal').classList.add('hidden');
-      document.getElementById('initial-prompt').classList.add('hidden');
-      document.getElementById('game-area').classList.remove('hidden');
-
-      // 渲染长度选项并初始化游戏
-      renderLengthOptions();
-      initGame();
-      enableStatsButton();
-
-      showMessage(`词库加载成功，包含 ${customWordList.length} 个词汇`, 'text-green-500');
-      setTimeout(() => {
-        showMessage('');
-      }, 2000);
-    }
-
-    // 游戏核心逻辑（其他函数保持不变）
-    function initGame() {
-      clearGameBoard();
-      resetGameState();
-
-      // 选择目标词汇
-      if (!chooseTargetWord()) {
-        showMessage(`没有找到长度为 ${WORD_LENGTH} 的站名，请选择其他长度`, 'text-amber-500');
-      }
-
-      // 重置输入框和按钮状态
-      const input = document.getElementById('word-input');
-      if (input) {
-        input.value = '';
-        updateInputState();
-      }
-
-      // 确保放弃按钮处于启用状态
-      const giveUpBtn = document.getElementById('give-up-btn');
-      if (giveUpBtn) {
-        giveUpBtn.disabled = false;
-      }
-    }
-
-    function chooseTargetWord() {
-      // 筛选出指定长度的词汇
-      const filteredWords = customWordList.filter(word => word.length === WORD_LENGTH);
-
-      if (filteredWords.length === 0) {
-        return false;
-      }
-
-      targetWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
-      
-      return true;
-    }
-
-    function handleSubmit() {
-      const input = document.getElementById('word-input');
-      if (!input) return;
-
-      const guess = input.value.trim();
-
-      if (gameOver) return;
-
-      // 新增：清除所有提示信息
-      showMessage('');
-      const hintDisplay = document.getElementById('hint-display');
-      if (hintDisplay) {
-        hintDisplay.innerHTML = '';
-        hintDisplay.classList.add('hidden');
-      }
-
-      // 验证输入长度
-      if (guess.length !== WORD_LENGTH) {
-        // 震动提示
-        input.classList.add('shake');
-        setTimeout(() => {
-          input.classList.remove('shake');
-        }, 500);
-
-        showMessage(`请输入 ${WORD_LENGTH} 个字的站`, 'text-amber-500');
-        return;
-      }
-
-      // 验证词汇是否在词库中
-      const filteredWords = customWordList.filter(word => word.length === WORD_LENGTH);
-      if (!filteredWords.includes(guess)) {
-        // 震动提示
-        input.classList.add('shake');
-        setTimeout(() => {
-          input.classList.remove('shake');
-        }, 500);
-
-        showMessage('该车站不在词库中', 'text-red-500');
-        return;
-      }
-
-
-      // 检查猜测结果
-      const result = checkGuess(guess);
-      addGuessRow(guess, result);
-
-      // 清空输入框
-      input.value = '';
-      updateInputState();
-
-      // 增加尝试次数
-      currentAttempts++;
-
-      // 新增：5次尝试后显示提示按钮（如果未使用过提示且游戏未结束）
-      if (currentAttempts >= 5 && !hintUsed && !gameOver) {
-        document.getElementById('hint-container').classList.remove('hidden');
-      }
-      // 检查游戏是否结束
-      if (isWin) {
-        gameOver = true;
-        updateStats(true);
-        showGameOverModal(true);
-        return;
-      }
-    }
-
-    // 其他游戏函数...
-    function checkGuess(guess) {
-      const targetArray = targetWord.split('');
-      const guessArray = guess.split('');
-      const result = Array(WORD_LENGTH).fill('');
-
-      // 先检查完全正确的字符
-      for (let i = 0; i < WORD_LENGTH; i++) {
-        if (guessArray[i] === targetArray[i]) {
-          result[i] = 'correct';
-          targetArray[i] = null; // 标记为已匹配
-        }
-      }
-
-      // 再检查存在但位置错误的字符
-      for (let i = 0; i < WORD_LENGTH; i++) {
-        if (result[i] === 'correct') continue;
-
-        const index = targetArray.indexOf(guessArray[i]);
-        if (index !== -1) {
-          result[i] = 'present';
-          targetArray[index] = null; // 标记为已匹配
-        } else {
-          result[i] = 'absent';
-        }
-      }
-
-      // 检查是否获胜
-      isWin = result.every(r => r === 'correct');
-
-      return result;
-    }
-
-    function showMessage(text, colorClass = '') {
-      const messageElement = document.getElementById('game-message');
-      if (!messageElement) return;
-
-      messageElement.textContent = text;
-      messageElement.className = 'mb-6 h-8 text-center font-medium text-lg';
-
-      if (text) {
-        messageElement.classList.add('slide-in');
-        if (colorClass) messageElement.classList.add(colorClass);
-      } else {
-        messageElement.classList.add('hidden');
-      }
-    }
-
-    function renderLengthOptions() {
-      const lengthOptions = document.getElementById('length-options');
-      if (!lengthOptions) return;
-
-      lengthOptions.innerHTML = '';
-
-      // 获取所有独特的词汇长度
-      const lengths = [...new Set(customWordList.map(word => word.length))].sort((a, b) => a - b);
-
-      if (lengths.length === 0) {
-        showMessage('当前词库中没有有效的站名', 'text-red-500');
-        return;
-      }
-
-      // 生成长度选择按钮
-      lengths.forEach(length => {
-        const btn = document.createElement('button');
-        btn.className = 'length-btn w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors';
-        btn.dataset.length = length;
-        btn.textContent = length;
-
-        // 为第一个长度设置为默认选中
-        if (lengths.indexOf(length) === 0) {
-          btn.classList.remove('bg-gray-200', 'dark:bg-gray-700');
-          btn.classList.add('bg-success', 'text-white');
-          WORD_LENGTH = length;
-          const lengthDisplay = document.getElementById('length-display');
-          if (lengthDisplay) lengthDisplay.textContent = length;
-          const wordInput = document.getElementById('word-input');
-          if (wordInput) wordInput.maxLength = length;
-        }
-
-        btn.addEventListener('click', () => {
-          // 如果游戏进行中，需要确认
-          if (currentAttempts > 0) {
-            if (!confirm('切换站名字数将开始新游戏，确定要继续吗？')) {
-              return;
-            }
-          }
-
-          // 更新选中状态
-          document.querySelectorAll('.length-btn').forEach(b => {
-            b.classList.remove('bg-success', 'text-white');
-            b.classList.add('bg-gray-200', 'dark:bg-gray-700');
-          });
-          btn.classList.remove('bg-gray-200', 'dark:bg-gray-700');
-          btn.classList.add('bg-success', 'text-white');
-
-          // 设置新的词汇长度并重新开始游戏
-          WORD_LENGTH = parseInt(btn.dataset.length);
-          const lengthDisplay = document.getElementById('length-display');
-          if (lengthDisplay) lengthDisplay.textContent = WORD_LENGTH;
-          const wordInput = document.getElementById('word-input');
-          if (wordInput) wordInput.maxLength = WORD_LENGTH;
-
-          initGame();
-        });
-
-        lengthOptions.appendChild(btn);
-      });
-    }
-
-    // 事件监听器设置
-    function setupEventListeners() {
-      // 输入框事件
-      const wordInput = document.getElementById('word-input');
-      if (wordInput) {
-        wordInput.addEventListener('input', updateInputState);
-        wordInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' && !document.getElementById('submit-btn').disabled) {
-            handleSubmit();
-          }
-        });
-      }
-      // 提示按钮事件
-      const hintBtn = document.getElementById('hint-btn');
-      if (hintBtn) {
-        hintBtn.addEventListener('click', () => {
-          if (hintUsed || gameOver) return;
-          showMessage('');
-          // 找到第一个未被正确猜到的位置和字符
-          let hintPos = -1;
-          let hintChar = '';
-
-          // 检查所有已猜行，找到第一个未被正确猜到的字符位置
-          const guessRows = document.querySelectorAll('#game-board > div');
-          const correctlyGuessed = new Array(WORD_LENGTH).fill(false);
-
-          // 标记已经猜对的位置
-          guessRows.forEach(row => {
-            const boxes = row.querySelectorAll('div');
-            boxes.forEach((box, index) => {
-              if (box.classList.contains('bg-success')) {
-                correctlyGuessed[index] = true;
-              }
-            });
-          });
-
-          // 找到第一个未被猜对的位置作为提示
-          for (let i = 0; i < WORD_LENGTH; i++) {
-            if (!correctlyGuessed[i]) {
-              hintPos = i;
-              hintChar = targetWord[i];
-              break;
-            }
-          }
-
-          // 如果所有位置都被部分猜对了，随机选一个位置
-          if (hintPos === -1) {
-            hintPos = Math.floor(Math.random() * WORD_LENGTH);
-            hintChar = targetWord[hintPos];
-          }
-
-          hintCharacter = hintChar;
-          hintUsed = true;
-
-          // 生成提示展示框
-          const hintDisplay = document.getElementById('hint-display');
-          hintDisplay.innerHTML = '';
-          hintDisplay.classList.remove('hidden');
-
-          for (let i = 0; i < WORD_LENGTH; i++) {
-            const box = document.createElement('div');
-            box.classList.add(
-              'w-12', 'h-12', 'sm:w-14', 'sm:h-14',
-              'border-2', 'rounded-md', 'flex', 'items-center',
-              'justify-center', 'text-xl', 'sm:text-2xl', 'font-bold',
-              'scale-in'
-            );
-
-            if (i === hintPos) {
-              // 提示的字符 - 绿色背景
-              box.classList.add('bg-success', 'text-white', 'border-success');
-              box.textContent = hintChar;
-            } else {
-              // 未知字符 - 灰色边框和问号
-              box.classList.add('border-gray-300', 'dark:border-gray-700', 'text-gray-400');
-              box.textContent = '?';
-            }
-
-            hintDisplay.appendChild(box);
-            // 添加延迟动画效果
-            box.style.animationDelay = `${i * 100}ms`;
-          }
-
-          // 隐藏提示按钮
-          document.getElementById('hint-container').classList.add('hidden');
-        });
-      }
-
-
-      // 放弃游戏按钮
-      const giveUpBtn = document.getElementById('give-up-btn');
-      if (giveUpBtn) {
-        giveUpBtn.addEventListener('click', () => {
-          if (gameOver) return;
-
-          if (confirm('确定要放弃游戏吗？放弃后将显示正确答案并算作失败。')) {
-            gameOver = true;
-            isWin = false;
-            updateStats(false); // 记录失败
-            showGameOverModal(false); // 显示失败弹窗
-          }
-        });
-      }
-
-      // 提交按钮
-      const submitBtn = document.getElementById('submit-btn');
-      if (submitBtn) {
-        submitBtn.addEventListener('click', handleSubmit);
-      }
-
-
-
-      //放弃按钮
-
-
-      // 词库相关按钮
-      const selectLibraryBtn = document.getElementById('select-library-btn');
-      if (selectLibraryBtn) {
-        selectLibraryBtn.addEventListener('click', () => {
-          document.getElementById('library-selection-modal').classList.remove('hidden');
-          loadLibraryList();
-        });
-      }
-
-      const closeLibraryModal = document.getElementById('close-library-modal');
-      if (closeLibraryModal) {
-        closeLibraryModal.addEventListener('click', () => {
-          if (selectedLibrary) {
-            document.getElementById('library-selection-modal').classList.add('hidden');
-          } else {
-            showMessage('请先选择一个词库', 'text-amber-500');
-          }
-        });
-      }
-
-      const refreshLibraries = document.getElementById('refresh-libraries');
-      if (refreshLibraries) {
-        refreshLibraries.addEventListener('click', loadLibraryList);
-      }
-
-      const useSelectedLibrary = document.getElementById('use-selected-library');
-      if (useSelectedLibrary) {
-        useSelectedLibrary.addEventListener('click', loadSelectedLibrary);
-      }
-
-      // 其他按钮事件...
-      const statsBtn = document.getElementById('stats-btn');
-      if (statsBtn) {
-        statsBtn.addEventListener('click', () => {
-          document.getElementById('stats-modal').classList.remove('hidden');
-          updateStatsDisplay();
-        });
-      }
-
-      const closeStats = document.getElementById('close-stats');
-      if (closeStats) {
-        closeStats.addEventListener('click', () => {
-          document.getElementById('stats-modal').classList.add('hidden');
-        });
-      }
-
-      const resetStats = document.getElementById('reset-stats');
-      if (resetStats) {
-        resetStats.addEventListener('click', () => {
-          if (confirm('确定要重置所有统计数据吗？')) {
-            localStorage.removeItem('wordleStats');
-            loadStats();
-            updateStatsDisplay();
-          }
-        });
-      }
-
-      const helpBtn = document.getElementById('help-btn');
-      if (helpBtn) {
-        helpBtn.addEventListener('click', () => {
-          document.getElementById('help-modal').classList.remove('hidden');
-        });
-      }
-
-      const closeHelp = document.getElementById('close-help');
-      if (closeHelp) {
-        closeHelp.addEventListener('click', () => {
-          document.getElementById('help-modal').classList.add('hidden');
-        });
-      }
-
-      const newGameBtn = document.getElementById('new-game-btn');
-      if (newGameBtn) {
-        newGameBtn.addEventListener('click', () => {
-          document.getElementById('game-over-modal').classList.add('hidden');
-          initGame();
-        });
-      }
-
-      const changeLibraryBtn = document.getElementById('change-library-btn');
-      if (changeLibraryBtn) {
-        changeLibraryBtn.addEventListener('click', () => {
-          document.getElementById('game-over-modal').classList.add('hidden');
-          document.getElementById('library-selection-modal').classList.remove('hidden');
-        });
-      }
-
-      // 主题切换
-      const themeToggle = document.getElementById('theme-toggle');
-      if (themeToggle) {
-        themeToggle.addEventListener('click', toggleTheme);
-      }
-    }
-
-    function updateInputState() {
-      const input = document.getElementById('word-input');
-      const submitBtn = document.getElementById('submit-btn');
-
-      if (!input || !submitBtn) return;
-
-      // 只更新提交按钮状态，不再处理清除按钮
-      submitBtn.disabled = input.value.trim().length === 0 || gameOver;
-    }
-
-    function addGuessRow(guess, result) {
-      const gameBoard = document.getElementById('game-board');
-      if (!gameBoard) return;
-
-      // 创建新的一行
-      const row = document.createElement('div');
-      row.classList.add('flex', 'gap-2', 'justify-center', 'slide-in');
-      row.dataset.attempt = currentAttempts;
-
-      // 添加每个字符的格子
-      for (let i = 0; i < WORD_LENGTH; i++) {
-        const box = document.createElement('div');
-        box.classList.add(
-          'w-12', 'h-12', 'sm:w-14', 'sm:h-14',
-          'border-2', 'border-gray-300', 'dark:border-gray-700',
-          'rounded-md', 'flex', 'items-center', 'justify-center',
-          'text-xl', 'sm:text-2xl', 'font-bold', 'letter-anim'
-        );
-        box.textContent = guess[i];
-        row.appendChild(box);
-      }
-
-      // 添加到棋盘顶部
-      gameBoard.prepend(row);
-
-      // 如果超过最大显示行数，删除最后一行
-      const rows = gameBoard.querySelectorAll('div[data-attempt]');
-      if (rows.length > MAX_VISIBLE_ROWS) {
-        gameBoard.removeChild(rows[rows.length - 1]);
-      }
-
-      // 应用颜色结果（带延迟动画）
-      setTimeout(() => {
-        const boxes = row.querySelectorAll('div');
-        result.forEach((res, i) => {
-          setTimeout(() => {
-            const box = boxes[i];
-            box.classList.remove('border-gray-300', 'dark:border-gray-700');
-
-            if (res === 'correct') {
-              box.classList.add('bg-success', 'text-white', 'pulse-correct');
-            } else if (res === 'present') {
-              box.classList.add('bg-warning', 'text-white', 'pulse-correct');
-            } else {
-              box.classList.add('bg-neutral', 'text-white', 'pulse-correct');
-            }
-          }, i * 200);
-        });
-      }, 100);
-    }
-
-    function clearGameBoard() {
-      const gameBoard = document.getElementById('game-board');
-      if (gameBoard) gameBoard.innerHTML = '';
-    }
-
-    function resetGameState() {
-      currentAttempts = 0;
-      gameOver = false;
-      isWin = false;
-      hintUsed = false;
-      hintCharacter = '';
-
-      // 重置提示相关元素
-      const messageElement = document.getElementById('game-message');
-      if (messageElement) messageElement.classList.add('hidden');
-
-      const hintContainer = document.getElementById('hint-container');
-      if (hintContainer) hintContainer.classList.add('hidden');
-
-      const hintDisplay = document.getElementById('hint-display');
-      if (hintDisplay) {
-        hintDisplay.innerHTML = '';
-        hintDisplay.classList.add('hidden');
-      }
-
-      // 启用放弃按钮
-      const giveUpBtn = document.getElementById('give-up-btn');
-      if (giveUpBtn) {
-        giveUpBtn.disabled = false;
-      }
-    }
-
-    function showGameOverModal(isWin) {
-      const modal = document.getElementById('game-over-modal');
-      const title = document.getElementById('game-over-title');
-      const message = document.getElementById('game-over-message');
-      const correctWordDisplay = document.getElementById('correct-word-display');
-
-      if (!modal || !title || !message || !correctWordDisplay) return;
-
-      if (isWin) {
-        title.textContent = '恭喜你!';
-        title.classList.add('text-success');
-        // 显示是否使用了提示
-        const hintText = hintUsed ? `（使用了提示）` : '';
-        message.textContent = `你用了 ${currentAttempts} 次猜出了正确答案 ${hintText}`;
-        correctWordDisplay.classList.add('hidden');
-      } else {
-        title.textContent = '游戏结束';
-        title.classList.add('text-neutral');
-        message.textContent = '很遗憾，你没有猜出正确答案';
-
-        // 显示正确词汇
-        correctWordDisplay.innerHTML = '';
-        correctWordDisplay.classList.remove('hidden');
-        for (const char of targetWord) {
-          const box = document.createElement('div');
-          box.classList.add(
-            'w-10', 'h-10', 'bg-success', 'text-white',
-            'flex', 'items-center', 'justify-center', 'font-bold'
-          );
-          box.textContent = char;
-          correctWordDisplay.appendChild(box);
-        }
-      }
-
-      // 禁用放弃按钮
-      const giveUpBtn = document.getElementById('give-up-btn');
-      if (giveUpBtn) {
-        giveUpBtn.disabled = true;
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    // 统计相关函数
-    let stats = {
-      totalGames: 0,
-      winGames: 0,
-      currentStreak: 0,
-      maxStreak: 0
-    };
-
-    function loadStats() {
-      const savedStats = localStorage.getItem('wordleStats');
-      if (savedStats) {
-        try {
-          stats = JSON.parse(savedStats);
-        } catch (e) {
-          console.error('加载统计数据失败:', e);
-          stats = {
-            totalGames: 0,
-            winGames: 0,
-            currentStreak: 0,
-            maxStreak: 0
-          };
-        }
-      } else {
-        stats = {
-          totalGames: 0,
-          winGames: 0,
-          currentStreak: 0,
-          maxStreak: 0
-        };
-      }
-    }
-
-    function updateStats(isWin) {
-      stats.totalGames++;
-
-      if (isWin) {
-        stats.winGames++;
-        stats.currentStreak++;
-        stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
-      } else {
-        stats.currentStreak = 0;
-      }
-
-      localStorage.setItem('wordleStats', JSON.stringify(stats));
-      updateStatsDisplay();
-    }
-
-    function updateStatsDisplay() {
-      const winRate = stats.totalGames > 0
-        ? Math.round((stats.winGames / stats.totalGames) * 100)
-        : 0;
-
-      document.getElementById('win-rate').textContent = `${winRate}%`;
-      document.getElementById('total-games').textContent = stats.totalGames;
-      document.getElementById('win-games').textContent = stats.winGames;
-      document.getElementById('current-streak').textContent = stats.currentStreak;
-      document.getElementById('max-streak').textContent = stats.maxStreak;
-    }
-
-    function enableStatsButton() {
-      const statsBtn = document.getElementById('stats-btn');
-      if (statsBtn) {
-        statsBtn.disabled = false;
-        statsBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-      }
-    }
-
-    // 主题相关函数
-    function setupTheme() {
-      if (localStorage.getItem('theme') === 'dark' ||
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
-
-    function toggleTheme() {
-      if (document.documentElement.classList.contains('dark')) {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      }
-    }
-  </script>
+</main>
 </body>
-
 </html>
